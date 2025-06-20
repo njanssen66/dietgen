@@ -1,6 +1,7 @@
 import { NgIf } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { environment } from '../../../environments/environment';
 
 const LOCAL_STORAGE_KEY = 'dietllm-user-settings';
 
@@ -53,8 +54,15 @@ export class UserSettingsComponent implements OnInit {
     return this.activityDescriptions[activity] || '';
   }
 
-  onSubmit() {
-    // You can handle the submit logic here
+  async onSubmit() {
+    const url = `${environment.apiUrl}/api/generate`;
+    const body = this.userForm.value;
+    const response = await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify(body)
+    });
+    const data = await response.json();
+    console.log(data);
     alert('Settings saved and meals will be generated!');
     // Optionally, trigger meal generation here
   }
