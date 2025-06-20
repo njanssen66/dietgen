@@ -3,7 +3,7 @@
     {
       "src": "frontend/package.json",
       "use": "@vercel/static",
-      "config": { "distDir": "frontend/dist/dietgen" }
+      "config": { "distDir": "frontend/dist/dietgen-frontend" }
     },
     {
       "src": "backend/index.js",
