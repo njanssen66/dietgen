@@ -1,0 +1,64 @@
+# Node.js / Backend
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn.lock
+package-lock.json
+dist/
+
+# Angular / Frontend
+dist/
+.angular/
+coverage/
+*.log
+*.tgz
+
+# Environment Variables
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Vercel
+.vercel/
+.vercelignore
+
+# Editor and IDE
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+build/
+out/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.cache
+
+# Sensitive files
+secrets.json
+credentials.json
+*.pem
+*.key
+*.cert
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# Testing
+/coverage/
+test-results/

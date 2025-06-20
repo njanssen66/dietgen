@@ -1,0 +1,47 @@
+<form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="user-settings-form">
+  <label>Age: <input type="number" formControlName="age"></label>
+  <label>Gender: 
+    <select formControlName="gender">
+      <option value="">Select</option>
+      <option>Male</option>
+      <option>Female</option>
+      <option>Other</option>
+    </select>
+  </label>
+  <label>
+    Weight: 
+    <input type="number" formControlName="weight" style="width: 80px;">
+    <select formControlName="weightUnit" style="width: 60px;">
+      <option value="lbs">lbs</option>
+      <option value="kg">kg</option>
+    </select>
+  </label>
+  <label>
+    Height: 
+    <input type="number" formControlName="height" style="width: 80px;">
+    <select formControlName="heightUnit" style="width: 60px;">
+      <option value="in">in</option>
+      <option value="cm">cm</option>
+    </select>
+  </label>
+  <label>Activity Level:
+    <select formControlName="activity">
+      <option value="">Select</option>
+      <option>Sedentary</option>
+      <option>Moderate</option>
+      <option>Active</option>
+    </select>
+  </label>
+  <div *ngIf="activityDescription" class="activity-helper">
+    {{ activityDescription }}
+  </div>
+  <label>Diet Goal:
+    <select formControlName="goal">
+      <option value="">Select</option>
+      <option>Weight Loss</option>
+      <option>Muscle Gain</option>
+      <option>General Health</option>
+    </select>
+  </label>
+  <button type="submit" class="generate-btn">Generate Meals</button>
+</form>

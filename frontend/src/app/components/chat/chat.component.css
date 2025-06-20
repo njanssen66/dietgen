@@ -1,0 +1,35 @@
+.chat-history {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chat-message {
+  padding: 8px;
+  border-radius: 4px;
+}
+
+.chat-message.user {
+  background: #e3f2fd;
+  align-self: flex-end;
+}
+
+.chat-message.bot {
+  background: #f1f8e9;
+  align-self: flex-start;
+}
+
+.chat-input-form {
+  display: flex;
+  gap: 8px;
+}
+
+.chat-input {
+  flex: 1;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}

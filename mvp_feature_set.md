@@ -101,8 +101,7 @@ Tech Stack & Deployment Decisions
   - Hosting: Vercel (preferred for Node.js/Express), Render.com, or Heroku as alternatives.
 
 - **Frontend:**
-  - React with Tailwind CSS for rapid development and state management.
-  - Plain JavaScript is acceptable for absolute minimalism.
+  - Angular (TypeScript) with Tailwind CSS for rapid development and responsive layout.
   - Hosting: Vercel or Netlify (optimized for static sites and serverless functions).
 
 - **Authentication:**
@@ -111,16 +110,16 @@ Tech Stack & Deployment Decisions
 
 - **Summary Table:**
 
-  | Layer      | Tech Choice (Recommended)         | Alternatives         | Hosting         |
-  |------------|----------------------------------|----------------------|-----------------|
-  | Frontend   | React + Tailwind CSS             | Plain JS, Vue, Svelte| Vercel, Netlify |
-  | Backend    | Node.js + Express                | Flask, FastAPI       | Vercel, Render  |
-  | LLM API    | OpenAI (switchable to Grok)      | Grok, others         | N/A             |
-  | Auth       | None for MVP                     | Auth0, Clerk, NextAuth| N/A            |
+  | Layer      | Tech Choice        | Hosting         |
+  |------------|----------------------------------|-----------------|
+  | Frontend   | Angular + Tailwind CSS           | Vercel, Netlify |
+  | Backend    | Node.js + Express                | Vercel, Render  |
+  | LLM API    | OpenAI (switchable to Grok)      | N/A             |
+  | Auth       | None for MVP                     | N/A            |
 
 - **Next Steps:**
   - Scaffold backend with `/api/generate` endpoint that routes to OpenAI or Grok based on env variable.
-  - Scaffold frontend with three-column layout using Tailwind CSS.
+  - Scaffold frontend with three-column layout using Angular.
   - Deploy both to Vercel for fastest setup (supports both frontend and backend in one repo).
 
 Risks and Mitigations
