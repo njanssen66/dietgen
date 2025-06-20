@@ -1,6 +1,18 @@
 {
-    "rewrites": [
-      { "source": "/api/:path*", "destination": "/backend/index.js" },
-      { "source": "/:path*", "destination": "/frontend/dist/index.html" }
-    ]
-  }
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/backend/index.js" },
+    { "source": "/:path*", "destination": "/frontend/dist/index.html" }
+  ],
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "/dist/**/*",
+      "use": "@vercel/static"
+    }
+  ],
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist/frontend"
+}
