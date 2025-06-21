@@ -1,7 +1,14 @@
 <div class="meal-list">
   <!-- Example meal card -->
-  <div class="meal-card" *ngFor="let meal of meals">
-    <img src="" alt="Meal" class="meal-img">
+  <div
+    class="meal-card"
+    *ngFor="let meal of meals; let i = index"
+    (click)="toggleRecipe(i)"
+    [class.expanded]="expandedIndex === i"
+    tabindex="0"
+    role="button"
+  >
+    <img [src]="meal.image" alt="Meal" class="meal-img" />
     <div>
       <h3>{{ meal.name }}</h3>
       <p>{{ meal.type }}</p>
@@ -10,6 +17,10 @@
           {{ ingredient }}
         </li>
       </ul>
+      <div class="meal-recipe" *ngIf="expandedIndex === i">
+        <h4>Recipe</h4>
+        <p>{{ meal.instructions }}</p>
+      </div>
     </div>
   </div>
   <!-- Repeat for each meal -->

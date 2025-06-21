@@ -20,6 +20,7 @@ export interface Meal {
   ingredients: string[];
   instructions: string[];
   type: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+  image?: string; // URL or base64
 }
 
 @Injectable({
@@ -35,10 +36,12 @@ export class MealGenerationService {
 
   /**
    * Generate a meal plan as an array of Observables, one for each meal type.
+   * Each Observable will emit a Meal object with an image generated.
    * @param userSettings - The user's settings
    * @returns Observable<Meal>[] - Array of Observables for each meal type
    */
   generateMealPlan(userSettings: UserSettings): Observable<Meal>[] {
+    // Each generateMeal now includes image generation
     return [
       this.generateMeal(userSettings, 'breakfast'),
       this.generateMeal(userSettings, 'lunch'),
@@ -57,10 +60,7 @@ export class MealGenerationService {
     mealSettings?: 'breakfast' | 'lunch' | 'dinner' | 'snack'
   ): Observable<Meal> {
     const url = `${this.apiUrl}/api/generate`;
-
     const existingMeals = this.getSavedMeals();
-    
-    // Merge mealSettings and existingMeals into the request body if provided
     const requestBody = {
       ...userSettings,
       ...(mealSettings ? { mealType: mealSettings } : {}),
@@ -81,6 +81,12 @@ export class MealGenerationService {
         return response.json();
       }),
       map((data: any) => this.transformApiResponse(data)),
+      mergeMap((meal: Meal) => {
+        // Always generate an image for the meal
+        return this.generateMealImage(meal).pipe(
+          map((image: string) => ({ ...meal, image }))
+        );
+      }),
       catchError(error => {
         console.error('Error generating meal plan:', error);
         return throwError(() => new Error('Failed to generate meal plan. Please try again.'));
@@ -99,7 +105,8 @@ export class MealGenerationService {
       name: data.meals.meal.name,
       ingredients: data.meals.meal.ingredients,
       instructions: data.meals.meal.instructions,
-      type: data.meals.meal.type
+      type: data.meals.meal.type,
+      image: data.meals.meal.image
     };
   }
 
@@ -189,6 +196,34 @@ export class MealGenerationService {
       catchError(error => {
         console.error('Error sending chat message:', error);
         return throwError(() => new Error('Failed to send chat message. Please try again.'));
+      })
+    );
+  }
+
+  /**
+   * Generate an image for a meal by calling the backend.
+   * @param meal - The meal object
+   * @returns Observable<string> - The image URL or base64 string
+   */
+  generateMealImage(meal: Meal): Observable<string> {
+    const url = `${this.apiUrl}/api/generate-image`;
+    return from(fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name: meal.name, ingredients: meal.ingredients })
+    })).pipe(
+      mergeMap(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      }),
+      map((data: any) => data.image), // assuming backend returns { image: '...' }
+      catchError(error => {
+        console.error('Error generating meal image:', error);
+        return of(''); // fallback: empty string if error
       })
     );
   }

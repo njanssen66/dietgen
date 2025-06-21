@@ -1,12 +1,13 @@
 import { Component, OnDestroy } from '@angular/core';
 import { Meal, MealGenerationService } from '../../services/meal-generation.service';
-import { NgFor } from '@angular/common';
+import { NgFor, NgIf } from '@angular/common';
 import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-meal-list',
   imports: [
-    NgFor
+    NgFor,
+    NgIf  
   ],
   templateUrl: './meal-list.component.html',
   styleUrl: './meal-list.component.css'
@@ -14,11 +15,16 @@ import { Subscription } from 'rxjs';
 export class MealListComponent implements OnDestroy {
   meals: Meal[] = [];
   private mealPlansSub: Subscription;
+  expandedIndex: number | null = null;
   
   constructor(private mealGenerationService: MealGenerationService) {
     this.mealPlansSub = this.mealGenerationService.savedMeals$.subscribe(meals => {
       this.meals = meals;
     });
+  }
+
+  toggleRecipe(index: number) {
+    this.expandedIndex = this.expandedIndex === index ? null : index;
   }
 
   ngOnDestroy() {

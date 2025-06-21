@@ -82,4 +82,32 @@ app.post('/api/generate', async (req: Request, res: Response) => {
   }
 });
 
+app.post('/api/generate-image', async (req: Request, res: Response) => {
+  const { name, ingredients } = req.body;
+
+  try {
+    // Compose a prompt for the image generation
+    const prompt = `A beautiful, appetizing photo of a meal called "${name}" made with the following ingredients: ${ingredients.join(', ')}. Plated and styled for a recipe website.`;
+
+    // Use OpenAI's image generation API (DALL·E 3)
+    const imageResponse = await openai.images.generate({
+      model: 'dall-e-3',
+      prompt,
+      n: 1,
+      size: '1024x1024',
+      response_format: 'url'
+    });
+
+    const imageUrl = imageResponse.data && imageResponse.data[0]?.url;
+    if (!imageUrl) {
+      throw new Error('No image URL returned from OpenAI.');
+    }
+
+    res.json({ image: imageUrl });
+  } catch (error: any) {
+    console.error('Error generating meal image:', error);
+    res.status(500).json({ success: false, error: error.message || 'Failed to generate image.' });
+  }
+});
+
 export default app;

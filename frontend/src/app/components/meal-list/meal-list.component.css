@@ -1,21 +1,77 @@
 .meal-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
+  padding: 24px 0;
 }
 
 .meal-card {
   display: flex;
-  gap: 16px;
-  background: #fafafa;
-  border-radius: 8px;
-  padding: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  align-items: flex-start;
+  gap: 24px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px 28px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: box-shadow 0.2s, transform 0.2s;
+  border: 1px solid #ececec;
+  cursor: pointer;
+}
+
+.meal-card:hover {
+  box-shadow: 0 6px 24px rgba(0,0,0,0.12);
+  transform: translateY(-2px) scale(1.01);
+}
+
+.meal-card.expanded {
+  border-color: #b3e5fc;
+  box-shadow: 0 8px 32px rgba(33,150,243,0.10);
 }
 
 .meal-img {
-  width: 100px;
-  height: 100px;
+  width: 96px;
+  height: 96px;
   object-fit: cover;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  border: 2px solid #f0f0f0;
+}
+
+.meal-card h3 {
+  margin: 0 0 4px 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #222;
+}
+
+.meal-card p {
+  margin: 0 0 8px 0;
+  color: #888;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.meal-card ul {
+  margin: 0;
+  padding-left: 18px;
+  list-style: disc;
+}
+
+.meal-card li {
+  margin-bottom: 2px;
+  font-size: 0.98rem;
+  color: #444;
+}
+
+.meal-recipe {
+  margin-top: 16px;
+  padding: 12px;
+  background: #f1f8ff;
   border-radius: 8px;
+  border: 1px solid #b3e5fc;
+  color: #1565c0;
+}
+
+.meal-card:focus {
+  outline: 2px solid #90caf9;
 }
