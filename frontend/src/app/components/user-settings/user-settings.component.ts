@@ -62,8 +62,5 @@ export class UserSettingsComponent implements OnInit {
       body: JSON.stringify(body)
     });
     const data = await response.json();
-    console.log(data);
-    alert('Settings saved and meals will be generated!');
-    // Optionally, trigger meal generation here
   }
 }
