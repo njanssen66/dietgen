@@ -185,13 +185,27 @@ export class MealGenerationService {
         }
         return response.json();
       }),
-      map((data: any) => {
-        // If the response includes meals, update local storage
+      mergeMap((data: any) => {
+        // If the response includes meals, update local storage and generate image
         if (data.meals && data.meals.meal) {
           const meal = this.transformApiResponse(data);
-          this.saveMealToStorage(meal);
+          return this.generateMealImage(meal).pipe(
+            map((image: string) => {
+              meal.image = image;
+              this.saveMealToStorage(meal);
+              // Optionally, attach the mealWithImage to the response
+              return { ...data, meals: { ...data.meals, meal: meal } };
+            })
+          );
         }
-        return data;
+        return of(data);
+      }),
+      mergeMap((result: any) => {
+        // If result is an Observable (from of()), just return it
+        if (result instanceof Observable) {
+          return result;
+        }
+        return of(result);
       }),
       catchError(error => {
         console.error('Error sending chat message:', error);
