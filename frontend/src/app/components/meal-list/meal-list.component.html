@@ -4,6 +4,7 @@
     <img src="" alt="Meal" class="meal-img">
     <div>
       <h3>{{ meal.name }}</h3>
+      <p>{{ meal.type }}</p>
       <ul>
         <li *ngFor="let ingredient of meal.ingredients">
           {{ ingredient }}

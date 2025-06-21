@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, from, throwError, BehaviorSubject } from 'rxjs';
+import { Observable, from, throwError, BehaviorSubject, of } from 'rxjs';
 import { catchError, map, mergeMap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
@@ -12,12 +12,6 @@ export interface UserSettings {
   heightUnit: 'cm' | 'in';
   activity: 'Sedentary' | 'Moderate' | 'Active';
   goal: 'lose weight' | 'maintain weight' | 'gain weight' | 'build muscle';
-}
-
-export interface MealPlan {
-  id: string;
-  generatedAt: Date;
-  meals: Meal[];
 }
 
 export interface Meal {
@@ -34,23 +28,51 @@ export interface Meal {
 export class MealGenerationService {
   private readonly apiUrl = environment.apiUrl;
 
-  private savedMealPlansSubject = new BehaviorSubject<MealPlan[]>(this.getSavedMealPlans());
-  savedMealPlans$ = this.savedMealPlansSubject.asObservable();
+  private savedMealsSubject = new BehaviorSubject<Meal[]>(this.getSavedMeals());
+  savedMeals$ = this.savedMealsSubject.asObservable();
 
   constructor() { }
 
   /**
-   * Generate a meal plan based on user settings
+   * Generate a meal plan as an array of Observables, one for each meal type.
+   * @param userSettings - The user's settings
+   * @returns Observable<Meal>[] - Array of Observables for each meal type
    */
-  generateMealPlan(userSettings: UserSettings): Observable<MealPlan> {
+  generateMealPlan(userSettings: UserSettings): Observable<Meal>[] {
+    return [
+      this.generateMeal(userSettings, 'breakfast'),
+      this.generateMeal(userSettings, 'lunch'),
+      this.generateMeal(userSettings, 'dinner'),
+      this.generateMeal(userSettings, 'snack')
+    ];
+  }
+
+  /**
+   * Generate a meal based on user settings and meal type (mealSettings)
+   * @param userSettings - The user's settings
+   * @param mealSettings - The type of meal to generate ('breakfast' | 'lunch' | 'dinner' | 'snack')
+   */
+  generateMeal(
+    userSettings: UserSettings,
+    mealSettings?: 'breakfast' | 'lunch' | 'dinner' | 'snack'
+  ): Observable<Meal> {
     const url = `${this.apiUrl}/api/generate`;
+
+    const existingMeals = this.getSavedMeals();
     
+    // Merge mealSettings and existingMeals into the request body if provided
+    const requestBody = {
+      ...userSettings,
+      ...(mealSettings ? { mealType: mealSettings } : {}),
+      ...(existingMeals ? { existingMeals } : {})
+    };
+
     return from(fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(userSettings)
+      body: JSON.stringify(requestBody)
     })).pipe(
       mergeMap(response => {
         if (!response.ok) {
@@ -69,26 +91,15 @@ export class MealGenerationService {
   /**
    * Transform API response to our internal format
    */
-  private transformApiResponse(data: any): MealPlan {
+  private transformApiResponse(data: any): Meal {
     // Transform the raw API response to our MealPlan interface
     // This assumes the API returns a structure that can be mapped
     return {
       id: data.id || this.generateId(),
-      generatedAt: new Date(),
-      meals: data.meals?.map((meal: any) => this.transformMeal(meal)) || [],
-    };
-  }
-
-  /**
-   * Transform individual meal data
-   */
-  private transformMeal(mealData: any): Meal {
-    return {
-      id: mealData.id || this.generateId(),
-      name: mealData.name || 'Unnamed Meal',
-      ingredients: mealData.ingredients || [],
-      instructions: mealData.instructions || [],
-      type: mealData.type || 'lunch'
+      name: data.meals.meal.name,
+      ingredients: data.meals.meal.ingredients,
+      instructions: data.meals.meal.instructions,
+      type: data.meals.meal.type
     };
   }
 
@@ -102,32 +113,29 @@ export class MealGenerationService {
   /**
    * Save meal plan to local storage
    */
-  saveMealPlanToStorage(mealPlan: MealPlan): void {
-    const savedPlans = this.getSavedMealPlans();
-    savedPlans.unshift(mealPlan);
+  saveMealToStorage(meal: Meal): void {
+    const savedMeals = this.getSavedMeals();
+    savedMeals.unshift(meal);
     
-    // Keep only the last 1 meal plans
-    if (savedPlans.length > 1) {
-      savedPlans.splice(1);
+    // Keep only the last 4 meals
+    if (savedMeals.length > 4) {
+      savedMeals.splice(4);
     }
     
-    localStorage.setItem('dietgen-saved-meal-plans', JSON.stringify(savedPlans));
-    this.savedMealPlansSubject.next(savedPlans);
+    localStorage.setItem('dietgen-saved-meal-plans', JSON.stringify(savedMeals));
+    this.savedMealsSubject.next(savedMeals);
   }
 
   /**
    * Get saved meal plans from local storage
    */
-  getSavedMealPlans(): MealPlan[] {
+  getSavedMeals(): Meal[] {
     const saved = localStorage.getItem('dietgen-saved-meal-plans');
     if (!saved) return [];
     
     try {
-      const plans = JSON.parse(saved);
-      return plans.map((plan: any) => ({
-        ...plan,
-        generatedAt: new Date(plan.generatedAt)
-      }));
+      const meals = JSON.parse(saved);
+      return meals;
     } catch (error) {
       console.error('Error parsing saved meal plans:', error);
       return [];
@@ -139,6 +147,6 @@ export class MealGenerationService {
    */
   clearSavedMealPlans(): void {
     localStorage.removeItem('dietgen-saved-meal-plans');
-    this.savedMealPlansSubject.next([]);
+    this.savedMealsSubject.next([]);
   }
 } 

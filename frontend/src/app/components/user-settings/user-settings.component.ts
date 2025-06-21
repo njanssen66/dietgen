@@ -1,7 +1,7 @@
 import { NgIf } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MealGenerationService, UserSettings, MealPlan } from '../../services/meal-generation.service';
+import { MealGenerationService, UserSettings, Meal } from '../../services/meal-generation.service';
 
 const LOCAL_STORAGE_KEY = 'dietllm-user-settings';
 
@@ -18,7 +18,7 @@ export class UserSettingsComponent implements OnInit {
   userForm: FormGroup;
   isLoading = false;
   errorMessage = '';
-  generatedMealPlan: MealPlan | null = null;
+  generatedMeal: Meal | null = null;
 
   activityDescriptions: { [key: string]: string } = {
     'Sedentary': 'Little or no exercise, desk job, minimal movement throughout the day.',
@@ -80,21 +80,19 @@ export class UserSettingsComponent implements OnInit {
 
     this.isLoading = true;
     this.errorMessage = '';
-    this.generatedMealPlan = null;
+    this.generatedMeal = null;
 
     try {
       const userSettings = this.userForm.value as UserSettings;
       
-      this.mealGenerationService.generateMealPlan(userSettings).subscribe({
-        next: (mealPlan: MealPlan) => {
-          this.generatedMealPlan = mealPlan;
-          this.mealGenerationService.saveMealPlanToStorage(mealPlan);
-          this.isLoading = false;
-        },
-        error: (error: Error) => {
-          this.errorMessage = error.message || 'Failed to generate meal plan. Please try again.';
-          this.isLoading = false;
-        }
+      this.mealGenerationService.generateMealPlan(userSettings).forEach(meal => {
+        meal.subscribe({
+          next: (meal: Meal) => {
+            this.generatedMeal = meal;
+            this.mealGenerationService.saveMealToStorage(meal);
+            this.isLoading = false;
+          }
+        });
       });
     } catch (error) {
       this.errorMessage = 'An unexpected error occurred. Please try again.';
@@ -107,7 +105,7 @@ export class UserSettingsComponent implements OnInit {
       weightUnit: 'kg',
       heightUnit: 'cm'
     });
-    this.generatedMealPlan = null;
+    this.generatedMeal = null;
     this.errorMessage = '';
     localStorage.removeItem(LOCAL_STORAGE_KEY);
   }

@@ -1,12 +1,11 @@
 import { Component, OnDestroy } from '@angular/core';
 import { Meal, MealGenerationService } from '../../services/meal-generation.service';
-import { NgIf, NgFor } from '@angular/common';
+import { NgFor } from '@angular/common';
 import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-meal-list',
   imports: [
-    NgIf,
     NgFor
   ],
   templateUrl: './meal-list.component.html',
@@ -17,9 +16,8 @@ export class MealListComponent implements OnDestroy {
   private mealPlansSub: Subscription;
   
   constructor(private mealGenerationService: MealGenerationService) {
-    this.mealPlansSub = this.mealGenerationService.savedMealPlans$.subscribe(plans => {
-      console.log(plans);
-      this.meals = plans.length > 0 ? plans[0].meals : [];
+    this.mealPlansSub = this.mealGenerationService.savedMeals$.subscribe(meals => {
+      this.meals = meals;
     });
   }
 
