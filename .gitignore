@@ -62,3 +62,4 @@ logs/
 # Testing
 /coverage/
 test-results/
+.vercel
