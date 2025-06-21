@@ -1,47 +1,150 @@
-<form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="user-settings-form">
-  <label>Age: <input type="number" formControlName="age"></label>
-  <label>Gender: 
-    <select formControlName="gender">
-      <option value="">Select</option>
-      <option>Male</option>
-      <option>Female</option>
-      <option>Other</option>
-    </select>
-  </label>
-  <label>
-    Weight: 
-    <input type="number" formControlName="weight" style="width: 80px;">
-    <select formControlName="weightUnit" style="width: 60px;">
-      <option value="lbs">lbs</option>
-      <option value="kg">kg</option>
-    </select>
-  </label>
-  <label>
-    Height: 
-    <input type="number" formControlName="height" style="width: 80px;">
-    <select formControlName="heightUnit" style="width: 60px;">
-      <option value="in">in</option>
-      <option value="cm">cm</option>
-    </select>
-  </label>
-  <label>Activity Level:
-    <select formControlName="activity">
-      <option value="">Select</option>
-      <option>Sedentary</option>
-      <option>Moderate</option>
-      <option>Active</option>
-    </select>
-  </label>
-  <div *ngIf="activityDescription" class="activity-helper">
-    {{ activityDescription }}
-  </div>
-  <label>Diet Goal:
-    <select formControlName="goal">
-      <option value="">Select</option>
-      <option>Weight Loss</option>
-      <option>Muscle Gain</option>
-      <option>General Health</option>
-    </select>
-  </label>
-  <button type="submit" class="generate-btn">Generate Meals</button>
-</form>
+<div class="user-settings-container">
+  <h2>User Settings</h2>
+  
+  <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="user-settings-form">
+    <div class="form-section">
+      <h3>Basic Information</h3>
+      
+      <div class="form-group">
+        <label for="age">Age *</label>
+        <input 
+          id="age"
+          type="number" 
+          formControlName="age"
+          placeholder="Enter your age"
+          [class.error]="userForm.get('age')?.invalid && userForm.get('age')?.touched">
+        <div class="error-message" *ngIf="userForm.get('age')?.invalid && userForm.get('age')?.touched">
+          <span *ngIf="userForm.get('age')?.errors?.['required']">Age is required</span>
+          <span *ngIf="userForm.get('age')?.errors?.['min']">Age must be at least 13</span>
+          <span *ngIf="userForm.get('age')?.errors?.['max']">Age must be less than 120</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="gender">Gender *</label>
+        <select 
+          id="gender"
+          formControlName="gender"
+          [class.error]="userForm.get('gender')?.invalid && userForm.get('gender')?.touched">
+          <option value="">Select gender</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+          <option value="other">Other</option>
+        </select>
+        <div class="error-message" *ngIf="userForm.get('gender')?.invalid && userForm.get('gender')?.touched">
+          Gender is required
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h3>Physical Measurements</h3>
+      
+      <div class="form-group">
+        <label for="weight">Weight *</label>
+        <div class="input-with-unit">
+          <input 
+            id="weight"
+            type="number" 
+            formControlName="weight"
+            placeholder="Enter weight"
+            [class.error]="userForm.get('weight')?.invalid && userForm.get('weight')?.touched">
+          <select formControlName="weightUnit">
+            <option value="kg">kg</option>
+            <option value="lbs">lbs</option>
+          </select>
+        </div>
+        <div class="error-message" *ngIf="userForm.get('weight')?.invalid && userForm.get('weight')?.touched">
+          <span *ngIf="userForm.get('weight')?.errors?.['required']">Weight is required</span>
+          <span *ngIf="userForm.get('weight')?.errors?.['min']">Weight must be at least 30</span>
+          <span *ngIf="userForm.get('weight')?.errors?.['max']">Weight must be less than 500</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="height">Height *</label>
+        <div class="input-with-unit">
+          <input 
+            id="height"
+            type="number" 
+            formControlName="height"
+            placeholder="Enter height"
+            [class.error]="userForm.get('height')?.invalid && userForm.get('height')?.touched">
+          <select formControlName="heightUnit">
+            <option value="cm">cm</option>
+            <option value="in">in</option>
+          </select>
+        </div>
+        <div class="error-message" *ngIf="userForm.get('height')?.invalid && userForm.get('height')?.touched">
+          <span *ngIf="userForm.get('height')?.errors?.['required']">Height is required</span>
+          <span *ngIf="userForm.get('height')?.errors?.['min']">Height must be at least 100</span>
+          <span *ngIf="userForm.get('height')?.errors?.['max']">Height must be less than 250</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h3>Activity & Goals</h3>
+      
+      <div class="form-group">
+        <label for="activity">Activity Level *</label>
+        <select 
+          id="activity"
+          formControlName="activity"
+          [class.error]="userForm.get('activity')?.invalid && userForm.get('activity')?.touched">
+          <option value="">Select activity level</option>
+          <option value="Sedentary">Sedentary</option>
+          <option value="Moderate">Moderate</option>
+          <option value="Active">Active</option>
+        </select>
+        <div class="activity-helper" *ngIf="activityDescription">
+          {{ activityDescription }}
+        </div>
+        <div class="error-message" *ngIf="userForm.get('activity')?.invalid && userForm.get('activity')?.touched">
+          Activity level is required
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="goal">Diet Goal *</label>
+        <select 
+          id="goal"
+          formControlName="goal"
+          [class.error]="userForm.get('goal')?.invalid && userForm.get('goal')?.touched">
+          <option value="">Select your goal</option>
+          <option value="lose weight">Lose Weight</option>
+          <option value="maintain weight">Maintain Weight</option>
+          <option value="gain weight">Gain Weight</option>
+          <option value="build muscle">Build Muscle</option>
+        </select>
+        <div class="error-message" *ngIf="userForm.get('goal')?.invalid && userForm.get('goal')?.touched">
+          Diet goal is required
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Message -->
+    <div class="error-banner" *ngIf="errorMessage">
+      <p>{{ errorMessage }}</p>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="form-actions">
+      <button 
+        type="submit" 
+        class="generate-btn"
+        [disabled]="userForm.invalid || isLoading">
+        <span *ngIf="!isLoading">Generate Meal Plan</span>
+        <span *ngIf="isLoading">Generating...</span>
+      </button>
+      
+      <button 
+        type="button" 
+        class="reset-btn"
+        (click)="resetForm()"
+        [disabled]="isLoading">
+        Reset Form
+      </button>
+    </div>
+  </form>
+</div>

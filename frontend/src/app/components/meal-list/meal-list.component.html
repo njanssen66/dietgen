@@ -1,12 +1,13 @@
 <div class="meal-list">
   <!-- Example meal card -->
-  <div class="meal-card">
+  <div class="meal-card" *ngFor="let meal of meals">
     <img src="" alt="Meal" class="meal-img">
     <div>
-      <h3>Meal Name</h3>
+      <h3>{{ meal.name }}</h3>
       <ul>
-        <li>Ingredient 1</li>
-        <li>Ingredient 2</li>
+        <li *ngFor="let ingredient of meal.ingredients">
+          {{ ingredient }}
+        </li>
       </ul>
     </div>
   </div>

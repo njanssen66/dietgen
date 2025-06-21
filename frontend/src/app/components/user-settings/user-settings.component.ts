@@ -1,7 +1,7 @@
 import { NgIf } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { environment } from '../../../environments/environment';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MealGenerationService, UserSettings, MealPlan } from '../../services/meal-generation.service';
 
 const LOCAL_STORAGE_KEY = 'dietllm-user-settings';
 
@@ -16,6 +16,9 @@ const LOCAL_STORAGE_KEY = 'dietllm-user-settings';
 })
 export class UserSettingsComponent implements OnInit {
   userForm: FormGroup;
+  isLoading = false;
+  errorMessage = '';
+  generatedMealPlan: MealPlan | null = null;
 
   activityDescriptions: { [key: string]: string } = {
     'Sedentary': 'Little or no exercise, desk job, minimal movement throughout the day.',
@@ -23,16 +26,26 @@ export class UserSettingsComponent implements OnInit {
     'Active': 'Hard exercise or sports 3+ days/week, or a physically demanding job.'
   };
 
-  constructor(private fb: FormBuilder) {
+  goalOptions = [
+    'lose weight',
+    'maintain weight', 
+    'gain weight',
+    'build muscle'
+  ];
+
+  constructor(
+    private fb: FormBuilder,
+    private mealGenerationService: MealGenerationService
+  ) {
     this.userForm = this.fb.group({
-      age: [''],
-      gender: [''],
-      weight: [''],
+      age: ['', [Validators.required, Validators.min(13), Validators.max(120)]],
+      gender: ['', Validators.required],
+      weight: ['', [Validators.required, Validators.min(30), Validators.max(500)]],
       weightUnit: ['kg'],
-      height: [''],
+      height: ['', [Validators.required, Validators.min(100), Validators.max(250)]],
       heightUnit: ['cm'],
-      activity: [''],
-      goal: ['']
+      activity: ['', Validators.required],
+      goal: ['', Validators.required]
     });
   }
 
@@ -40,7 +53,12 @@ export class UserSettingsComponent implements OnInit {
     // Load from local storage if available
     const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (saved) {
-      this.userForm.patchValue(JSON.parse(saved));
+      try {
+        const savedSettings = JSON.parse(saved);
+        this.userForm.patchValue(savedSettings);
+      } catch (error) {
+        console.error('Error loading saved settings:', error);
+      }
     }
 
     // Save to local storage on any change
@@ -55,12 +73,42 @@ export class UserSettingsComponent implements OnInit {
   }
 
   async onSubmit() {
-    const url = `${environment.apiUrl}/api/generate`;
-    const body = this.userForm.value;
-    const response = await fetch(url, {
-      method: 'POST',
-      body: JSON.stringify(body)
+    if (this.userForm.invalid) {
+      this.errorMessage = 'Please fill in all required fields correctly.';
+      return;
+    }
+
+    this.isLoading = true;
+    this.errorMessage = '';
+    this.generatedMealPlan = null;
+
+    try {
+      const userSettings = this.userForm.value as UserSettings;
+      
+      this.mealGenerationService.generateMealPlan(userSettings).subscribe({
+        next: (mealPlan: MealPlan) => {
+          this.generatedMealPlan = mealPlan;
+          this.mealGenerationService.saveMealPlanToStorage(mealPlan);
+          this.isLoading = false;
+        },
+        error: (error: Error) => {
+          this.errorMessage = error.message || 'Failed to generate meal plan. Please try again.';
+          this.isLoading = false;
+        }
+      });
+    } catch (error) {
+      this.errorMessage = 'An unexpected error occurred. Please try again.';
+      this.isLoading = false;
+    }
+  }
+
+  resetForm() {
+    this.userForm.reset({
+      weightUnit: 'kg',
+      heightUnit: 'cm'
     });
-    const data = await response.json();
+    this.generatedMealPlan = null;
+    this.errorMessage = '';
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
   }
 }
