@@ -105,7 +105,7 @@ export class MealGenerationService {
       name: data.meals.meal.name,
       ingredients: data.meals.meal.ingredients,
       instructions: data.meals.meal.instructions,
-      type: data.meals.meal.type,
+      type: data.meals.meal.mealType,
       image: data.meals.meal.image
     };
   }

@@ -40,7 +40,7 @@ app.post('/api/generate', async (req: Request, res: Response) => {
                 name: { type: 'string', description: 'Name of the meal' },
                 ingredients: { type: 'array', items: { type: 'string' }, description: 'List of ingredients' },
                 instructions: { type: 'array', items: { type: 'string' }, description: 'Step-by-step instructions' },
-                type: {
+                mealType: {
                   type: 'string',
                   description: 'Meal type',
                   enum: ['breakfast', 'lunch', 'dinner', 'snack']
@@ -91,8 +91,9 @@ app.post('/api/generate-image', async (req: Request, res: Response) => {
 
     // Use OpenAI's image generation API (DALL·E 3)
     const imageResponse = await openai.images.generate({
-      model: 'dall-e-3',
+      model: 'gpt-image-1',
       prompt,
+      quality: 'low',
       n: 1,
       size: '1024x1024',
       response_format: 'url'
