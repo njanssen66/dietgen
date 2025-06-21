@@ -112,16 +112,17 @@ export class MealGenerationService {
 
   /**
    * Save meal plan to local storage
+   * Replaces any existing meal of the same type, otherwise adds new.
    */
   saveMealToStorage(meal: Meal): void {
-    const savedMeals = this.getSavedMeals();
+    let savedMeals = this.getSavedMeals();
+
+    // Remove any existing meal of the same type
+    savedMeals = savedMeals.filter(m => m.type !== meal.type);
+
+    // Add the new meal to the front
     savedMeals.unshift(meal);
-    
-    // Keep only the last 4 meals
-    if (savedMeals.length > 4) {
-      savedMeals.splice(4);
-    }
-    
+
     localStorage.setItem('dietgen-saved-meal-plans', JSON.stringify(savedMeals));
     this.savedMealsSubject.next(savedMeals);
   }
@@ -148,5 +149,47 @@ export class MealGenerationService {
   clearSavedMealPlans(): void {
     localStorage.removeItem('dietgen-saved-meal-plans');
     this.savedMealsSubject.next([]);
+  }
+
+  /**
+   * Send a chat message to the backend (ChatGPT) and receive a response.
+   * Optionally updates meals if the response includes meal data.
+   * @param message - The user's chat message
+   * @param userSettings - The user's settings (optional, for context)
+   */
+  sendChatMessage(message: string, userSettings?: UserSettings): Observable<any> {
+    const url = `${this.apiUrl}/api/generate`;
+    const existingMeals = this.getSavedMeals();
+    const requestBody: any = {
+      ...(userSettings ? userSettings : {}),
+      message,
+      ...(existingMeals ? { existingMeals } : {})
+    };
+    return from(fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody)
+    })).pipe(
+      mergeMap(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      }),
+      map((data: any) => {
+        // If the response includes meals, update local storage
+        if (data.meals && data.meals.meal) {
+          const meal = this.transformApiResponse(data);
+          this.saveMealToStorage(meal);
+        }
+        return data;
+      }),
+      catchError(error => {
+        console.error('Error sending chat message:', error);
+        return throwError(() => new Error('Failed to send chat message. Please try again.'));
+      })
+    );
   }
 } 

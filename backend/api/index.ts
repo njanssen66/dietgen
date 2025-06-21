@@ -55,7 +55,7 @@ app.post('/api/generate', async (req: Request, res: Response) => {
     ];
 
     const messages = [
-      { role: 'system', content: 'You are a helpful meal generation assistant. Call generate_meal function to generate a meal.' },
+      { role: 'system', content: 'You are a helpful meal generation assistant. Call generate_meal function to generate a meal. You should create meals with multiple ingredients. If a user asks just to change amount of an ingredient, use discretion to change the amount of the other ingredients if needed.' },
       { role: 'user', content: `Generate a meal for: ${JSON.stringify(userSettings)}` },
     ];
 
