@@ -46,7 +46,6 @@ export class MealGenerationService {
       this.generateMeal(userSettings, 'breakfast'),
       this.generateMeal(userSettings, 'lunch'),
       this.generateMeal(userSettings, 'dinner'),
-      this.generateMeal(userSettings, 'snack')
     ];
   }
 
@@ -57,7 +56,7 @@ export class MealGenerationService {
    */
   generateMeal(
     userSettings: UserSettings,
-    mealSettings?: 'breakfast' | 'lunch' | 'dinner' | 'snack'
+    mealSettings?: 'breakfast' | 'lunch' | 'dinner'
   ): Observable<Meal> {
     const url = `${this.apiUrl}/api/generate`;
     const existingMeals = this.getSavedMeals();

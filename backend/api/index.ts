@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import cors from "cors";
 import OpenAI from "openai";
 import dotenv from "dotenv";
+import { put } from '@vercel/blob';
 
 const app = express();
 
@@ -94,20 +95,33 @@ app.post('/api/generate-image', async (req: Request, res: Response) => {
       model: 'gpt-image-1',
       prompt,
       quality: 'low',
-      n: 1,
       size: '1024x1024',
-      response_format: 'url'
     });
 
-    const imageUrl = imageResponse.data && imageResponse.data[0]?.url;
-    if (!imageUrl) {
-      throw new Error('No image URL returned from OpenAI.');
+    const image_base64 = imageResponse.data?.[0]?.b64_json;
+    if (!image_base64) {
+      throw new Error('No image base64 returned from OpenAI.');
     }
 
-    res.json({ image: imageUrl });
+    // Convert base64 to buffer
+    const imageBuffer = Buffer.from(image_base64, 'base64');
+    
+    // Generate a unique filename
+    const timestamp = Date.now();
+    const filename = `meal-${name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${timestamp}.png`;
+    
+    // Upload to Vercel Blob storage
+    const blob = await put(filename, imageBuffer, {
+      access: 'public',
+      contentType: 'image/png'
+    });
+
+    res.json({ 
+      image: blob.url,
+    });
   } catch (error: any) {
     console.error('Error generating meal image:', error);
-    res.status(500).json({ success: false, error: error.message || 'Failed to generate image.' });
+    res.status(500).json({ error: error.message || 'Failed to generate image.' });
   }
 });
 
