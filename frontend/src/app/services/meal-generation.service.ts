@@ -2,26 +2,9 @@ import { Injectable } from '@angular/core';
 import { Observable, from, throwError, BehaviorSubject, of } from 'rxjs';
 import { catchError, map, mergeMap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
-
-export interface UserSettings {
-  age: number;
-  gender: string;
-  weight: number;
-  weightUnit: 'kg' | 'lbs';
-  height: number;
-  heightUnit: 'cm' | 'in';
-  activity: 'Sedentary' | 'Moderate' | 'Active';
-  goal: 'lose weight' | 'maintain weight' | 'gain weight' | 'build muscle';
-}
-
-export interface Meal {
-  id: string;
-  name: string;
-  ingredients: string[];
-  instructions: string[];
-  type: 'breakfast' | 'lunch' | 'dinner' | 'snack';
-  image?: string; // URL or base64
-}
+import { UserSettings } from '../data/interfaces/user-settings';
+import { Meal } from '../data/interfaces/meals/meal';
+import { UserSettingsService } from './user-settings.service';
 
 @Injectable({
   providedIn: 'root'
@@ -32,7 +15,9 @@ export class MealGenerationService {
   private savedMealsSubject = new BehaviorSubject<Meal[]>(this.getSavedMeals());
   savedMeals$ = this.savedMealsSubject.asObservable();
 
-  constructor() { }
+  constructor(
+    private userSettingsService: UserSettingsService
+  ) { }
 
   /**
    * Generate a meal plan as an array of Observables, one for each meal type.
@@ -56,14 +41,14 @@ export class MealGenerationService {
    */
   generateMeal(
     userSettings: UserSettings,
-    mealSettings?: 'breakfast' | 'lunch' | 'dinner'
+    mealSettings?: 'breakfast' | 'lunch' | 'dinner',
   ): Observable<Meal> {
     const url = `${this.apiUrl}/api/generate`;
     const existingMeals = this.getSavedMeals();
     const requestBody = {
-      ...userSettings,
-      ...(mealSettings ? { mealType: mealSettings } : {}),
-      ...(existingMeals ? { existingMeals } : {})
+      userSettings: userSettings,
+      mealSettings: mealSettings,
+      existingMeals: existingMeals
     };
 
     return from(fetch(url, {
@@ -163,8 +148,9 @@ export class MealGenerationService {
    * @param message - The user's chat message
    * @param userSettings - The user's settings (optional, for context)
    */
-  sendChatMessage(message: string, userSettings?: UserSettings): Observable<any> {
+  sendChatMessage(message: string): Observable<any> {
     const url = `${this.apiUrl}/api/generate`;
+    const userSettings = this.userSettingsService.getSavedUserSettings();
     const existingMeals = this.getSavedMeals();
     const requestBody: any = {
       ...(userSettings ? userSettings : {}),
@@ -192,8 +178,6 @@ export class MealGenerationService {
             map((image: string) => {
               meal.image = image;
               this.saveMealToStorage(meal);
-              // Optionally, attach the mealWithImage to the response
-              return { ...data, meals: { ...data.meals, meal: meal } };
             })
           );
         }

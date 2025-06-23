@@ -24,7 +24,9 @@ app.get("/", (req, res) => {
 });
 
 app.post('/api/generate', async (req: Request, res: Response) => {
-  const userSettings = req.body;
+  const userSettings = req.body.userSettings;
+  const mealSettings = req.body.mealSettings;
+  const existingMeals = req.body.existingMeals;
 
   try {
     const functions = [
@@ -44,10 +46,10 @@ app.post('/api/generate', async (req: Request, res: Response) => {
                 mealType: {
                   type: 'string',
                   description: 'Meal type',
-                  enum: ['breakfast', 'lunch', 'dinner', 'snack']
+                  enum: ['breakfast', 'lunch', 'dinner']
                 }
               },
-              required: ['name', 'ingredients', 'instructions', 'type']
+              required: ['name', 'ingredients', 'instructions', 'mealType']
             }
           },
           required: ['meal'],
@@ -56,7 +58,12 @@ app.post('/api/generate', async (req: Request, res: Response) => {
     ];
 
     const messages = [
-      { role: 'system', content: 'You are a helpful meal generation assistant. Call generate_meal function to generate a meal. You should create meals with multiple ingredients. If a user asks just to change amount of an ingredient, use discretion to change the amount of the other ingredients if needed.' },
+      { 
+        role: 'system', content: 'You are a helpful meal generation assistant. ' + 
+        'Call generate_meal function to generate a meal. You should create meals ' +
+        'with multiple ingredients. If a user asks just to change amount of an ' +
+        'ingredient, use discretion to change the amount of the other ingredients if needed.' 
+      },
       { role: 'user', content: `Generate a meal for: ${JSON.stringify(userSettings)}` },
     ];
 
@@ -76,7 +83,7 @@ app.post('/api/generate', async (req: Request, res: Response) => {
       }
     }
 
-    res.json({ success: true, meals, userSettings });
+    res.json({ success: true, meals });
   } catch (error: any) {
     console.error(error);
     res.status(500).json({ success: false, error: error.message });

@@ -1,7 +1,8 @@
 import { Component, OnDestroy } from '@angular/core';
-import { Meal, MealGenerationService } from '../../services/meal-generation.service';
+import { MealGenerationService } from '../../services/meal-generation.service';
 import { NgFor, NgIf } from '@angular/common';
 import { Subscription } from 'rxjs';
+import { Meal } from '../../data/interfaces/meals/meal';
 
 @Component({
   selector: 'app-meal-list',

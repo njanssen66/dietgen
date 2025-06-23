@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { MealGenerationService, UserSettings } from '../../services/meal-generation.service';
+import { MealGenerationService } from '../../services/meal-generation.service';
 import { FormsModule } from '@angular/forms';
 import { NgFor, NgIf, NgClass } from '@angular/common';
 
@@ -38,14 +38,7 @@ export class ChatComponent implements OnInit {
     this.input = '';
     this.isLoading = true;
 
-    // Try to get user settings from localStorage for context
-    let userSettings: UserSettings | undefined = undefined;
-    try {
-      const saved = localStorage.getItem('dietllm-user-settings');
-      if (saved) userSettings = JSON.parse(saved);
-    } catch {}
-
-    this.mealService.sendChatMessage(userMessage, userSettings).subscribe({
+    this.mealService.sendChatMessage(userMessage).subscribe({
       next: (data) => {
         let botReply = 'Okay!';
         if (data && data.meals && data.meals.meal && data.meals.meal.name) {

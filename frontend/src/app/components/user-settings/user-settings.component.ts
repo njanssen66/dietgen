@@ -1,112 +1,119 @@
-import { NgIf } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, computed, effect } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MealGenerationService, UserSettings, Meal } from '../../services/meal-generation.service';
-
-const LOCAL_STORAGE_KEY = 'dietllm-user-settings';
+import { inject } from '@angular/core';
+import { MealGenerationService } from '../../services/meal-generation.service';
+import { UserSettings } from '../../data/interfaces/user-settings';
+import { Meal } from '../../data/interfaces/meals/meal';
+import { UserSettingsService } from '../../services/user-settings.service';
 
 @Component({
   selector: 'app-user-settings',
-  imports: [
-    ReactiveFormsModule,
-    NgIf
-  ],
+  imports: [ReactiveFormsModule],
   templateUrl: './user-settings.component.html',
-  styleUrl: './user-settings.component.css'
+  styleUrl: './user-settings.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class UserSettingsComponent implements OnInit {
-  userForm: FormGroup;
-  isLoading = false;
-  errorMessage = '';
-  generatedMeal: Meal | null = null;
+export class UserSettingsComponent {
+  private fb = inject(FormBuilder);
+  private mealGenerationService = inject(MealGenerationService);
+  private userSettingsService = inject(UserSettingsService);
 
-  activityDescriptions: { [key: string]: string } = {
+  // Use signal for form state
+  userForm = signal<FormGroup>(this.fb.group({
+    age: [null, [Validators.required, Validators.min(13), Validators.max(120)]],
+    gender: [null, Validators.required],
+    weight: [null, [Validators.required, Validators.min(30), Validators.max(500)]],
+    weightUnit: ['kg'],
+    height: [null, [Validators.required, Validators.min(100), Validators.max(250)]],
+    heightUnit: ['cm'],
+    activity: [null, Validators.required],
+    goal: [null, Validators.required]
+  }));
+
+  isLoading = signal(false);
+  errorMessage = signal('');
+
+  readonly activityDescriptions: { [key: string]: string } = {
     'Sedentary': 'Little or no exercise, desk job, minimal movement throughout the day.',
     'Moderate': 'Light exercise or sports 1-3 days/week, or a job with some movement.',
     'Active': 'Hard exercise or sports 3+ days/week, or a physically demanding job.'
   };
 
-  goalOptions = [
+  readonly goalOptions = [
     'lose weight',
-    'maintain weight', 
+    'maintain weight',
     'gain weight',
     'build muscle'
   ];
 
-  constructor(
-    private fb: FormBuilder,
-    private mealGenerationService: MealGenerationService
-  ) {
-    this.userForm = this.fb.group({
-      age: ['', [Validators.required, Validators.min(13), Validators.max(120)]],
-      gender: ['', Validators.required],
-      weight: ['', [Validators.required, Validators.min(30), Validators.max(500)]],
-      weightUnit: ['kg'],
-      height: ['', [Validators.required, Validators.min(100), Validators.max(250)]],
-      heightUnit: ['cm'],
-      activity: ['', Validators.required],
-      goal: ['', Validators.required]
-    });
-  }
+  // Use computed for derived state
+  activityDescription = computed(() => {
+    const activity = this.userForm().get('activity')?.value;
+    return typeof activity === 'string' ? this.activityDescriptions[activity] || '' : '';
+  });
 
-  ngOnInit(): void {
-    // Load from local storage if available
-    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (saved) {
-      try {
-        const savedSettings = JSON.parse(saved);
-        this.userForm.patchValue(savedSettings);
-      } catch (error) {
-        console.error('Error loading saved settings:', error);
+  constructor() {
+    // Patch form with user settings from service
+    this.userSettingsService.userSettings$.subscribe(userSettings => {
+      if (userSettings) {
+        this.userForm().patchValue(userSettings);
       }
-    }
+    });
 
-    // Save to local storage on any change
-    this.userForm.valueChanges.subscribe(val => {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(val));
+    // Save to service on any change
+    effect(() => {
+      this.userForm().valueChanges.subscribe(val => {
+        this.userSettingsService.saveUserSettings(val as UserSettings);
+      });
     });
   }
 
-  get activityDescription(): string {
-    const activity = this.userForm.get('activity')?.value;
-    return this.activityDescriptions[activity] || '';
-  }
-
-  async onSubmit() {
-    if (this.userForm.invalid) {
-      this.errorMessage = 'Please fill in all required fields correctly.';
+  onSubmit() {
+    if (this.userForm().invalid) {
+      this.errorMessage.set('Please fill in all required fields correctly.');
       return;
     }
-
-    this.isLoading = true;
-    this.errorMessage = '';
-    this.generatedMeal = null;
-
+    
+    this.isLoading.set(true);
+    this.errorMessage.set('');
+    
     try {
-      const userSettings = this.userForm.value as UserSettings;
-      
+      const raw = this.userForm().value;
+      const userSettings: UserSettings = {
+        age: Number(raw.age),
+        gender: String(raw.gender),
+        weight: Number(raw.weight),
+        weightUnit: raw.weightUnit,
+        height: Number(raw.height),
+        heightUnit: raw.heightUnit,
+        activity: raw.activity,
+        goal: raw.goal
+      };
+
       this.mealGenerationService.generateMealPlan(userSettings).forEach(meal => {
         meal.subscribe({
           next: (meal: Meal) => {
-            this.generatedMeal = meal;
             this.mealGenerationService.saveMealToStorage(meal);
-            this.isLoading = false;
+            this.isLoading.set(false);
+          },
+          error: () => {
+            this.errorMessage.set('An unexpected error occurred. Please try again.');
+            this.isLoading.set(false);
           }
         });
       });
-    } catch (error) {
-      this.errorMessage = 'An unexpected error occurred. Please try again.';
-      this.isLoading = false;
+    } catch {
+      this.errorMessage.set('An unexpected error occurred. Please try again.');
+      this.isLoading.set(false);
     }
   }
 
   resetForm() {
-    this.userForm.reset({
+    this.userForm().reset({
       weightUnit: 'kg',
       heightUnit: 'cm'
     });
-    this.generatedMeal = null;
-    this.errorMessage = '';
-    localStorage.removeItem(LOCAL_STORAGE_KEY);
+    this.errorMessage.set('');
+    this.userSettingsService.clearUserSettings();
   }
 }
