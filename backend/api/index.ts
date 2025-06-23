@@ -25,29 +25,26 @@ app.get("/", (req, res) => {
 
 app.post('/api/generate', async (req: Request, res: Response) => {
   const userSettings = req.body.userSettings;
-  const mealSettings = req.body.mealSettings;
+  const mealType = req.body.mealType;
   const existingMeals = req.body.existingMeals;
+  const message = req.body.message;
 
   try {
     const functions = [
       {
         name: 'generate_meal',
-        description: 'Generate a meal based on user settings',
+        description: 'Generate a meal for the user.',
         parameters: {
           type: 'object',
           properties: {
             meal: {
               type: 'object',
-              description: 'A generated meal',
+              description: 'A generated meal for the user.',
               properties: {
                 name: { type: 'string', description: 'Name of the meal' },
                 ingredients: { type: 'array', items: { type: 'string' }, description: 'List of ingredients' },
                 instructions: { type: 'array', items: { type: 'string' }, description: 'Step-by-step instructions' },
-                mealType: {
-                  type: 'string',
-                  description: 'Meal type',
-                  enum: ['breakfast', 'lunch', 'dinner']
-                }
+                mealType: { type: 'string', description: 'The type of meal (breakfast, lunch, or dinner)', enum: ['breakfast', 'lunch', 'dinner'] }
               },
               required: ['name', 'ingredients', 'instructions', 'mealType']
             }
@@ -57,15 +54,20 @@ app.post('/api/generate', async (req: Request, res: Response) => {
       },
     ];
 
-    const messages = [
-      { 
-        role: 'system', content: 'You are a helpful meal generation assistant. ' + 
-        'Call generate_meal function to generate a meal. You should create meals ' +
-        'with multiple ingredients. If a user asks just to change amount of an ' +
-        'ingredient, use discretion to change the amount of the other ingredients if needed.' 
-      },
-      { role: 'user', content: `Generate a meal for: ${JSON.stringify(userSettings)}` },
-    ];
+    var systemMessage = { 
+      role: 'system', content: 'You are a helpful meal generation assistant. ' + 
+      'Call generate_meal function to generate a meal. You should create meals ' +
+      'with multiple ingredients. If a user asks just to change amount of an ' +
+      'ingredient, use discretion to change the amount of the other ingredients if needed. '
+    };
+
+    if (existingMeals.length > 0) {
+      systemMessage.content += `The user already has the following meals: ${JSON.stringify(existingMeals)}`;
+    }
+
+    const userMessage = { role: 'user', content: message ?? `Generate a ${mealType} meal for: ${JSON.stringify(userSettings)}` }
+
+    const messages = [ systemMessage, userMessage ]
 
     const completion = await openai.chat.completions.create({
       model: 'o4-mini',

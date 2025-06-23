@@ -4,7 +4,6 @@ import { catchError, map, mergeMap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { UserSettings } from '../data/interfaces/user-settings';
 import { Meal } from '../data/interfaces/meals/meal';
-import { UserSettingsService } from './user-settings.service';
 
 @Injectable({
   providedIn: 'root'
@@ -15,10 +14,6 @@ export class MealGenerationService {
   private savedMealsSubject = new BehaviorSubject<Meal[]>(this.getSavedMeals());
   savedMeals$ = this.savedMealsSubject.asObservable();
 
-  constructor(
-    private userSettingsService: UserSettingsService
-  ) { }
-
   /**
    * Generate a meal plan as an array of Observables, one for each meal type.
    * Each Observable will emit a Meal object with an image generated.
@@ -26,7 +21,6 @@ export class MealGenerationService {
    * @returns Observable<Meal>[] - Array of Observables for each meal type
    */
   generateMealPlan(userSettings: UserSettings): Observable<Meal>[] {
-    // Each generateMeal now includes image generation
     return [
       this.generateMeal(userSettings, 'breakfast'),
       this.generateMeal(userSettings, 'lunch'),
@@ -37,17 +31,17 @@ export class MealGenerationService {
   /**
    * Generate a meal based on user settings and meal type (mealSettings)
    * @param userSettings - The user's settings
-   * @param mealSettings - The type of meal to generate ('breakfast' | 'lunch' | 'dinner' | 'snack')
+   * @param mealType - The type of meal to generate ('breakfast' | 'lunch' | 'dinner' | 'snack')
    */
   generateMeal(
     userSettings: UserSettings,
-    mealSettings?: 'breakfast' | 'lunch' | 'dinner',
+    mealType?: 'breakfast' | 'lunch' | 'dinner',
   ): Observable<Meal> {
     const url = `${this.apiUrl}/api/generate`;
     const existingMeals = this.getSavedMeals();
     const requestBody = {
       userSettings: userSettings,
-      mealSettings: mealSettings,
+      mealType: mealType,
       existingMeals: existingMeals
     };
 
@@ -66,10 +60,15 @@ export class MealGenerationService {
       }),
       map((data: any) => this.transformApiResponse(data)),
       mergeMap((meal: Meal) => {
-        // Always generate an image for the meal
-        return this.generateMealImage(meal).pipe(
-          map((image: string) => ({ ...meal, image }))
-        );
+        if (environment.generateImages) {
+          // Always generate an image for the meal
+          return this.generateMealImage(meal).pipe(
+            map((image: string) => ({ ...meal, image }))
+          );
+        } else {
+          // In dev mode, skip image generation
+          return of({ ...meal, image: '' });
+        }
       }),
       catchError(error => {
         console.error('Error generating meal plan:', error);
@@ -143,66 +142,15 @@ export class MealGenerationService {
   }
 
   /**
-   * Send a chat message to the backend (ChatGPT) and receive a response.
-   * Optionally updates meals if the response includes meal data.
-   * @param message - The user's chat message
-   * @param userSettings - The user's settings (optional, for context)
-   */
-  sendChatMessage(message: string): Observable<any> {
-    const url = `${this.apiUrl}/api/generate`;
-    const userSettings = this.userSettingsService.getSavedUserSettings();
-    const existingMeals = this.getSavedMeals();
-    const requestBody: any = {
-      ...(userSettings ? userSettings : {}),
-      message,
-      ...(existingMeals ? { existingMeals } : {})
-    };
-    return from(fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody)
-    })).pipe(
-      mergeMap(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      }),
-      mergeMap((data: any) => {
-        // If the response includes meals, update local storage and generate image
-        if (data.meals && data.meals.meal) {
-          const meal = this.transformApiResponse(data);
-          return this.generateMealImage(meal).pipe(
-            map((image: string) => {
-              meal.image = image;
-              this.saveMealToStorage(meal);
-            })
-          );
-        }
-        return of(data);
-      }),
-      mergeMap((result: any) => {
-        // If result is an Observable (from of()), just return it
-        if (result instanceof Observable) {
-          return result;
-        }
-        return of(result);
-      }),
-      catchError(error => {
-        console.error('Error sending chat message:', error);
-        return throwError(() => new Error('Failed to send chat message. Please try again.'));
-      })
-    );
-  }
-
-  /**
    * Generate an image for a meal by calling the backend.
    * @param meal - The meal object
    * @returns Observable<string> - The image URL or base64 string
    */
   generateMealImage(meal: Meal): Observable<string> {
+    if (!environment.generateImages) {
+      return of('');
+    }
+    
     const url = `${this.apiUrl}/api/generate-image`;
     return from(fetch(url, {
       method: 'POST',

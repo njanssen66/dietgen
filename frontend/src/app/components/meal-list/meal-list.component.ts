@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, inject, OnDestroy } from '@angular/core';
 import { MealGenerationService } from '../../services/meal-generation.service';
 import { NgFor, NgIf } from '@angular/common';
 import { Subscription } from 'rxjs';
@@ -14,11 +14,13 @@ import { Meal } from '../../data/interfaces/meals/meal';
   styleUrl: './meal-list.component.css'
 })
 export class MealListComponent implements OnDestroy {
+  private mealGenerationService = inject(MealGenerationService);
+  
   meals: Meal[] = [];
   private mealPlansSub: Subscription;
   expandedIndex: number | null = null;
   
-  constructor(private mealGenerationService: MealGenerationService) {
+  constructor() {
     this.mealPlansSub = this.mealGenerationService.savedMeals$.subscribe(meals => {
       this.meals = meals;
     });

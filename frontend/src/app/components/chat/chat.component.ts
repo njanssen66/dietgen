@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { MealGenerationService } from '../../services/meal-generation.service';
 import { FormsModule } from '@angular/forms';
 import { NgFor, NgIf, NgClass } from '@angular/common';
+import { ChatServiceService } from '../../services/chat-service.service';
 
 interface ChatMessage {
   role: 'user' | 'bot';
@@ -20,11 +21,14 @@ interface ChatMessage {
   styleUrl: './chat.component.css'
 })
 export class ChatComponent implements OnInit {
+  private chatService = inject(ChatServiceService);
+  private mealGenerationService = inject(MealGenerationService);
+
   messages: ChatMessage[] = [];
   input: string = '';
   isLoading = false;
 
-  constructor(private mealService: MealGenerationService) {}
+  constructor() {}
 
   ngOnInit(): void {
     // Optionally, load chat history from localStorage if you want persistence
@@ -38,7 +42,9 @@ export class ChatComponent implements OnInit {
     this.input = '';
     this.isLoading = true;
 
-    this.mealService.sendChatMessage(userMessage).subscribe({
+    const existingMeals = this.mealGenerationService.getSavedMeals();
+
+    this.chatService.sendChatMessage(userMessage, existingMeals).subscribe({
       next: (data) => {
         let botReply = 'Okay!';
         if (data && data.meals && data.meals.meal && data.meals.meal.name) {
