@@ -36,21 +36,23 @@ app.post('/api/generate', async (req: Request, res: Response) => {
         description: 'Generate a meal for the user.',
         parameters: {
           type: 'object',
+          additionalProperties: false,
           properties: {
             meal: {
               type: 'object',
               description: 'A generated meal for the user.',
+              additionalProperties: false,
               properties: {
                 name: { type: 'string', description: 'Name of the meal' },
                 ingredients: { type: 'array', items: { type: 'string' }, description: 'List of ingredients' },
                 instructions: { type: 'array', items: { type: 'string' }, description: 'Step-by-step instructions' },
                 mealType: { type: 'string', description: 'The type of meal (breakfast, lunch, or dinner)', enum: ['breakfast', 'lunch', 'dinner'] }
               },
-              required: ['name', 'ingredients', 'instructions', 'mealType']
+              required: ['name', 'ingredients', 'instructions', 'mealType'],
             }
           },
           required: ['meal'],
-        },
+        }
       },
     ];
 
@@ -58,7 +60,10 @@ app.post('/api/generate', async (req: Request, res: Response) => {
       role: 'system', content: 'You are a helpful meal generation assistant. ' + 
       'Call generate_meal function to generate a meal. You should create meals ' +
       'with multiple ingredients. If a user asks just to change amount of an ' +
-      'ingredient, use discretion to change the amount of the other ingredients if needed. '
+      'ingredient, use discretion to change the amount of the other ingredients if needed. ' +
+      'IMPORTANT: All properties must strictly follow the provided function schema. ' +
+      'Do not return any properties outside the required structure. ' +
+      'The mealType property must be inside the meal object.'
     };
 
     if (existingMeals.length > 0) {
@@ -85,7 +90,7 @@ app.post('/api/generate', async (req: Request, res: Response) => {
       }
     }
 
-    res.json({ success: true, meals });
+    res.json({ success: true, meals: meals });
   } catch (error: any) {
     console.error(error);
     res.status(500).json({ success: false, error: error.message });

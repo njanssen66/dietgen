@@ -2,156 +2,182 @@
   <h2>User Settings</h2>
   
   <form [formGroup]="userForm()" (ngSubmit)="onSubmit()" class="user-settings-form">
-    <div class="form-section">
-      <h3>Basic Information</h3>
-      
-      <div class="form-group">
-        <label for="age">Age *</label>
-        <input 
-          id="age"
-          type="number" 
-          formControlName="age"
-          placeholder="Enter your age"
-          [class.error]="userForm().get('age')?.invalid && userForm().get('age')?.touched">
-        @if (userForm().get('age')?.invalid && userForm().get('age')?.touched) {
-          <div class="error-message">
-            @if (userForm().get('age')?.errors?.['required']) {
-              <span>Age is required</span>
-            }
-            @if (userForm().get('age')?.errors?.['min']) {
-              <span>Age must be at least 13</span>
-            }
-            @if (userForm().get('age')?.errors?.['max']) {
-              <span>Age must be less than 120</span>
-            }
-          </div>
-        }
-      </div>
-
-      <div class="form-group">
-        <label for="gender">Gender *</label>
-        <select 
-          id="gender"
-          formControlName="gender"
-          [class.error]="userForm().get('gender')?.invalid && userForm().get('gender')?.touched">
-          <option value="">Select gender</option>
-          <option value="male">Male</option>
-          <option value="female">Female</option>
-          <option value="other">Other</option>
-        </select>
-        @if (userForm().get('gender')?.invalid && userForm().get('gender')?.touched) {
-          <div class="error-message">
-            Gender is required
-          </div>
-        }
-      </div>
-    </div>
-
-    <div class="form-section">
-      <h3>Physical Measurements</h3>
-      
-      <div class="form-group">
-        <label for="weight">Weight *</label>
-        <div class="input-with-unit">
+    <div class="scrollable-form-content">
+      <div class="form-section">
+        <h3>Basic Information</h3>
+        
+        <div class="form-group">
+          <label for="age">Age *</label>
           <input 
-            id="weight"
+            id="age"
             type="number" 
-            formControlName="weight"
-            placeholder="Enter weight"
-            [class.error]="userForm().get('weight')?.invalid && userForm().get('weight')?.touched">
-          <select formControlName="weightUnit">
-            <option value="kg">kg</option>
-            <option value="lbs">lbs</option>
-          </select>
+            formControlName="age"
+            placeholder="Enter your age"
+            [class.error]="userForm().get('age')?.invalid && userForm().get('age')?.touched">
+          @if (userForm().get('age')?.invalid && userForm().get('age')?.touched) {
+            <div class="error-message">
+              @if (userForm().get('age')?.errors?.['required']) {
+                <span>Age is required</span>
+              }
+              @if (userForm().get('age')?.errors?.['min']) {
+                <span>Age must be at least 13</span>
+              }
+              @if (userForm().get('age')?.errors?.['max']) {
+                <span>Age must be less than 120</span>
+              }
+            </div>
+          }
         </div>
-        @if (userForm().get('weight')?.invalid && userForm().get('weight')?.touched) {
-          <div class="error-message">
-            @if (userForm().get('weight')?.errors?.['required']) {
-              <span>Weight is required</span>
-            }
-            @if (userForm().get('weight')?.errors?.['min']) {
-              <span>Weight must be at least 30</span>
-            }
-            @if (userForm().get('weight')?.errors?.['max']) {
-              <span>Weight must be less than 500</span>
-            }
-          </div>
-        }
-      </div>
 
-      <div class="form-group">
-        <label for="height">Height *</label>
-        <div class="input-with-unit">
-          <input 
-            id="height"
-            type="number" 
-            formControlName="height"
-            placeholder="Enter height"
-            [class.error]="userForm().get('height')?.invalid && userForm().get('height')?.touched">
-          <select formControlName="heightUnit">
-            <option value="cm">cm</option>
-            <option value="in">in</option>
+        <div class="form-group">
+          <label for="gender">Gender *</label>
+          <select 
+            id="gender"
+            formControlName="gender"
+            [class.error]="userForm().get('gender')?.invalid && userForm().get('gender')?.touched">
+            <option value="">Select gender</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
           </select>
+          @if (userForm().get('gender')?.invalid && userForm().get('gender')?.touched) {
+            <div class="error-message">
+              Gender is required
+            </div>
+          }
         </div>
-        @if (userForm().get('height')?.invalid && userForm().get('height')?.touched) {
-          <div class="error-message">
-            @if (userForm().get('height')?.errors?.['required']) {
-              <span>Height is required</span>
-            }
-            @if (userForm().get('height')?.errors?.['min']) {
-              <span>Height must be at least 100</span>
-            }
-            @if (userForm().get('height')?.errors?.['max']) {
-              <span>Height must be less than 250</span>
-            }
-          </div>
-        }
-      </div>
-    </div>
-
-    <div class="form-section">
-      <h3>Activity & Goals</h3>
-      
-      <div class="form-group">
-        <label for="activity">Activity Level *</label>
-        <select 
-          id="activity"
-          formControlName="activity"
-          [class.error]="userForm().get('activity')?.invalid && userForm().get('activity')?.touched">
-          <option value="">Select activity level</option>
-          <option value="Sedentary">Sedentary</option>
-          <option value="Moderate">Moderate</option>
-          <option value="Active">Active</option>
-        </select>
-        @if (activityDescription()) {
-          <div class="activity-helper">
-            {{ activityDescription() }}
-          </div>
-        }
-        @if (userForm().get('activity')?.invalid && userForm().get('activity')?.touched) {
-          <div class="error-message">
-            Activity level is required
-          </div>
-        }
       </div>
 
-      <div class="form-group">
-        <label for="goal">Diet Goal *</label>
-        <select 
-          id="goal"
-          formControlName="goal"
-          [class.error]="userForm().get('goal')?.invalid && userForm().get('goal')?.touched">
-          <option value="">Select your goal</option>
-          <option value="lose weight">Lose Weight</option>
-          <option value="maintain weight">Maintain Weight</option>
-          <option value="gain weight">Gain Weight</option>
-          <option value="build muscle">Build Muscle</option>
-        </select>
-        @if (userForm().get('goal')?.invalid && userForm().get('goal')?.touched) {
-          <div class="error-message">
-            Diet goal is required
+      <div class="form-section">
+        <h3>Physical Measurements</h3>
+        
+        <div class="form-group">
+          <label for="weight">Weight *</label>
+          <div class="input-with-unit">
+            <input 
+              id="weight"
+              type="number" 
+              formControlName="weight"
+              placeholder="Enter weight"
+              [class.error]="userForm().get('weight')?.invalid && userForm().get('weight')?.touched">
+            <select formControlName="weightUnit">
+              <option value="kg">kg</option>
+              <option value="lbs">lbs</option>
+            </select>
           </div>
-        }
+          @if (userForm().get('weight')?.invalid && userForm().get('weight')?.touched) {
+            <div class="error-message">
+              @if (userForm().get('weight')?.errors?.['required']) {
+                <span>Weight is required</span>
+              }
+              @if (userForm().get('weight')?.errors?.['min']) {
+                <span>Weight must be at least 30</span>
+              }
+              @if (userForm().get('weight')?.errors?.['max']) {
+                <span>Weight must be less than 500</span>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="height">Height *</label>
+          <div class="input-with-unit">
+            <input 
+              id="height"
+              type="number" 
+              formControlName="height"
+              placeholder="Enter height"
+              [class.error]="userForm().get('height')?.invalid && userForm().get('height')?.touched">
+            <select formControlName="heightUnit">
+              <option value="cm">cm</option>
+              <option value="in">in</option>
+            </select>
+          </div>
+          @if (userForm().get('height')?.invalid && userForm().get('height')?.touched) {
+            <div class="error-message">
+              @if (userForm().get('height')?.errors?.['required']) {
+                <span>Height is required</span>
+              }
+              @if (userForm().get('height')?.errors?.['min']) {
+                <span>Height must be at least 100</span>
+              }
+              @if (userForm().get('height')?.errors?.['max']) {
+                <span>Height must be less than 250</span>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3>Activity & Goals</h3>
+        
+        <div class="form-group">
+          <label for="activity">Activity Level *</label>
+          <select 
+            id="activity"
+            formControlName="activity"
+            [class.error]="userForm().get('activity')?.invalid && userForm().get('activity')?.touched">
+            <option value="">Select activity level</option>
+            <option value="Sedentary">Sedentary</option>
+            <option value="Moderate">Moderate</option>
+            <option value="Active">Active</option>
+          </select>
+          @if (activityDescription()) {
+            <div class="activity-helper">
+              {{ activityDescription() }}
+            </div>
+          }
+          @if (userForm().get('activity')?.invalid && userForm().get('activity')?.touched) {
+            <div class="error-message">
+              Activity level is required
+            </div>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="goal">Diet Goal *</label>
+          <select 
+            id="goal"
+            formControlName="goal"
+            [class.error]="userForm().get('goal')?.invalid && userForm().get('goal')?.touched">
+            <option value="">Select your goal</option>
+            <option value="lose weight">Lose Weight</option>
+            <option value="maintain weight">Maintain Weight</option>
+            <option value="gain weight">Gain Weight</option>
+            <option value="build muscle">Build Muscle</option>
+          </select>
+          @if (userForm().get('goal')?.invalid && userForm().get('goal')?.touched) {
+            <div class="error-message">
+              Diet goal is required
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3>Favourite Foods</h3>
+        <div class="form-group">
+          <label for="favouriteFoods">List your favourite foods</label>
+          <textarea id="favouriteFoods" formControlName="favouriteFoods" rows="2" placeholder="e.g. Chicken, Broccoli, Rice"></textarea>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3>Disliked Foods</h3>
+        <div class="form-group">
+          <label for="dislikedFoods">List foods you dislike</label>
+          <textarea id="dislikedFoods" formControlName="dislikedFoods" rows="2" placeholder="e.g. Fish, Peas, Mushrooms"></textarea>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3>Additional Info</h3>
+        <div class="form-group">
+          <label for="additionalInfo">Anything else we should know?</label>
+          <textarea id="additionalInfo" formControlName="additionalInfo" rows="2" placeholder="e.g. Allergies, preferences, etc."></textarea>
+        </div>
       </div>
     </div>
 

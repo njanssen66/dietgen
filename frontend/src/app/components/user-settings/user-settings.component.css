@@ -18,6 +18,17 @@
   padding: 30px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   margin-bottom: 30px;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.scrollable-form-content {
+  overflow-y: auto;
+  flex: 1 1 auto;
+  max-height: 70vh;
+  padding-right: 8px;
 }
 
 .form-section {
@@ -302,6 +313,7 @@
   
   .user-settings-form {
     padding: 20px;
+    max-height: 80vh;
   }
   
   .form-actions {
@@ -327,5 +339,9 @@
   .meal-time {
     flex-direction: column;
     gap: 5px;
+  }
+  
+  .scrollable-form-content {
+    max-height: 65vh;
   }
 }

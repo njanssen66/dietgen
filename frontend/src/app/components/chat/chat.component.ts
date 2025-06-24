@@ -46,9 +46,10 @@ export class ChatComponent implements OnInit {
 
     this.chatService.sendChatMessage(userMessage, existingMeals).subscribe({
       next: (data) => {
+        console.log(data);
         let botReply = 'Okay!';
-        if (data && data.meals && data.meals.meal && data.meals.meal.name) {
-          botReply = `Meal updated: ${data.meals.meal.name}`;
+        if (data && data.name) {
+          botReply = `Meal updated: ${data.name}`;
         } else if (data && data.message) {
           botReply = data.message;
         }

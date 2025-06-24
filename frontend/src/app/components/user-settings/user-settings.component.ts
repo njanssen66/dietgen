@@ -27,7 +27,10 @@ export class UserSettingsComponent {
     height: [null, [Validators.required, Validators.min(100), Validators.max(250)]],
     heightUnit: ['cm'],
     activity: [null, Validators.required],
-    goal: [null, Validators.required]
+    goal: [null, Validators.required],
+    favouriteFoods: [''],
+    dislikedFoods: [''],
+    additionalInfo: ['']
   }));
 
   isLoading = signal(false);
@@ -47,8 +50,10 @@ export class UserSettingsComponent {
   ];
 
   // Use computed for derived state
+  private activityValue = signal<string | null>(null);
+
   activityDescription = computed(() => {
-    const activity = this.userForm().get('activity')?.value;
+    const activity = this.activityValue();
     return typeof activity === 'string' ? this.activityDescriptions[activity] || '' : '';
   });
 
@@ -57,6 +62,17 @@ export class UserSettingsComponent {
     this.userSettingsService.userSettings$.subscribe(userSettings => {
       if (userSettings) {
         this.userForm().patchValue(userSettings);
+      }
+    });
+
+    // Keep activityValue in sync with form
+    effect(() => {
+      const activityControl = this.userForm().get('activity');
+      if (activityControl) {
+        this.activityValue.set(activityControl.value);
+        activityControl.valueChanges.subscribe((val: string) => {
+          this.activityValue.set(val);
+        });
       }
     });
 
@@ -87,7 +103,10 @@ export class UserSettingsComponent {
         height: Number(raw.height),
         heightUnit: raw.heightUnit,
         activity: raw.activity,
-        goal: raw.goal
+        goal: raw.goal,
+        favouriteFoods: raw.favouriteFoods,
+        dislikedFoods: raw.dislikedFoods,
+        additionalInfo: raw.additionalInfo
       };
 
       this.mealGenerationService.generateMealPlan(userSettings).forEach(meal => {
@@ -111,7 +130,10 @@ export class UserSettingsComponent {
   resetForm() {
     this.userForm().reset({
       weightUnit: 'kg',
-      heightUnit: 'cm'
+      heightUnit: 'cm',
+      favouriteFoods: '',
+      dislikedFoods: '',
+      additionalInfo: ''
     });
     this.errorMessage.set('');
     this.userSettingsService.clearUserSettings();
